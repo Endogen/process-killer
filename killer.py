@@ -3,6 +3,7 @@ import flet as ft
 from flet_core import KeyboardEvent
 
 
+# TODO: How to save and load window position?
 def main(page: ft.Page):
     processes = dict()
 

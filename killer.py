@@ -65,11 +65,9 @@ def main(page: ft.Page):
             list_view.controls = None
             page.update()
 
-    page.on_keyboard_event = on_keyboard
-
     page.window_width = 600
     page.window_height = 490
-
+    page.on_keyboard_event = on_keyboard
     page.add(text_field, list_view)
 
 

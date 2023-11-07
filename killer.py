@@ -42,7 +42,7 @@ def main(page: ft.Page):
         ] if str_lower else []
         page.update()
 
-    text_field = ft.TextField(label="Search for process to kill:", on_change=textbox_changed, autofocus=True)
+    text_field = ft.TextField(label="Process name:", on_change=textbox_changed, autofocus=True)
     list_view = ft.ListView(expand=1, spacing=10, padding=20)
 
     def on_keyboard(e: KeyboardEvent):

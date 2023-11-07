@@ -21,10 +21,11 @@ def main(page: ft.Page):
             p_name = e.control.title.value
 
             if p_name in p_keys:
-                p_keys.remove(p_name)
-                del processes[p_name]
-
                 processes[p_name].kill()
+                del processes[p_name]
+                p_keys.remove(p_name)
+
+        text_field.focus()
 
     list_processes = {
         name: ft.ListTile(
@@ -56,10 +57,9 @@ def main(page: ft.Page):
                 p_name = entry.title.value
 
                 if p_name in p_keys:
-                    p_keys.remove(p_name)
-                    del processes[p_name]
-
                     processes[p_name].kill()
+                    del processes[p_name]
+                    p_keys.remove(p_name)
 
             text_field.value = None
             list_view.controls = None

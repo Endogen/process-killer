@@ -1,11 +1,9 @@
 import psutil
 import flet as ft
+from flet_core import KeyboardEvent
 
 
-# TODO: ESC should clear the input field
 def main(page: ft.Page):
-    list_view = None
-
     processes = dict()
 
     page.title = "Process-Killer"
@@ -46,6 +44,17 @@ def main(page: ft.Page):
 
     text_field = ft.TextField(label="Search for process to kill:", on_change=textbox_changed, autofocus=True)
     list_view = ft.ListView(expand=1, spacing=10, padding=20)
+
+    def on_keyboard(e: KeyboardEvent):
+        if e.key == 'Escape':
+            text_field.value = None
+            list_view.controls = None
+            page.update()
+
+    page.on_keyboard_event = on_keyboard
+
+    page.window_width = 600
+    page.window_height = 490
 
     page.add(text_field, list_view)
 

@@ -6,6 +6,8 @@ from flet_core import KeyboardEvent
 
 
 # TODO: How to save and load window position?
+# TODO: App doesn't exit with sys.exit()?
+# TODO: Window resizes on startup
 def main(page: ft.Page):
     processes = dict()
 

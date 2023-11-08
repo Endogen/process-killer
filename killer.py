@@ -1,36 +1,40 @@
-import sys
-
 import psutil
 import flet as ft
 from flet_core import KeyboardEvent
 
 
 # TODO: How to save and load window position?
-# TODO: App doesn't exit with sys.exit()?
 # TODO: Window resizes on startup
+# TODO: Display shortcuts in background
 def main(page: ft.Page):
     processes = dict()
+    p_keys = list()
 
-    page.title = "Process-Killer"
+    def get_process_list():
+        processes.clear()
+        for proc in psutil.process_iter():
+            processes[proc.name()] = proc
 
-    for proc in psutil.process_iter():
-        processes[proc.name()] = proc
+        p_keys = list(processes.keys())  # FIXME: Why is that not recognized?
 
-    p_keys = list(processes.keys())
+    get_process_list()
+    print(p_keys)  # TODO: Remove
 
     def kill_process(e):
         if e.control in list_view.controls:
-            list_view.controls.remove(e.control)
-            page.update()
-
             p_name = e.control.title.value
 
             if p_name in p_keys:
-                processes[p_name].kill()
-                del processes[p_name]
-                p_keys.remove(p_name)
+                try:
+                    processes[p_name].kill()
+                    del processes[p_name]
+                    p_keys.remove(p_name)
+                    list_view.controls.remove(e.control)
+                except psutil.AccessDenied:
+                    e.control.leading = ft.Icon(ft.icons.ERROR)
 
-        text_field.focus()
+            text_field.focus()
+            page.update()
 
     list_processes = {
         name: ft.ListTile(
@@ -52,29 +56,40 @@ def main(page: ft.Page):
     list_view = ft.ListView(expand=1, spacing=10, padding=20)
 
     def on_keyboard(e: KeyboardEvent):
+        # ESC - Clear input field
         if e.key == "Escape":
             text_field.value = None
             list_view.controls = None
             page.update()
 
+        # CTRL + K - Multi kill
         elif e.key == "K" and e.control:
             for entry in list_view.controls:
                 p_name = entry.title.value
 
                 if p_name in p_keys:
-                    processes[p_name].kill()
-                    del processes[p_name]
-                    p_keys.remove(p_name)
+                    try:
+                        processes[p_name].kill()
+                        del processes[p_name]
+                        p_keys.remove(p_name)
+                        list_view.controls.remove(entry)
+                    except psutil.AccessDenied:
+                        entry.leading = ft.Icon(ft.icons.ERROR)
 
-            text_field.value = None
-            list_view.controls = None
+            text_field.focus()
             page.update()
 
+        # CTRL + R - Refresh process list
+        elif e.key == "R" and e.control:
+            get_process_list()
+
+        # CTRL + Q - Exit app
         elif e.key == "Q" and e.control:
-            sys.exit()
+            page.window_destroy()
 
     page.window_width = 600
     page.window_height = 490
+    page.title = "Process-Killer"
     page.on_keyboard_event = on_keyboard
     page.add(text_field, list_view)
 

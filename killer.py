@@ -1,3 +1,5 @@
+import sys
+
 import psutil
 import flet as ft
 from flet_core import KeyboardEvent
@@ -65,6 +67,9 @@ def main(page: ft.Page):
             text_field.value = None
             list_view.controls = None
             page.update()
+
+        elif e.key == "Q" and e.control:
+            sys.exit()
 
     page.window_width = 600
     page.window_height = 490

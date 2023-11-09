@@ -6,29 +6,35 @@ from flet_core import KeyboardEvent
 # TODO: Window resizes on startup
 # TODO: Display shortcuts in background
 
-processes = dict()
+p_dict = dict()
+p_keys = list()
 
-for proc in psutil.process_iter():
-    processes[proc.name()] = proc
+p_text = None
+p_list = None
 
-p_keys = list(processes.keys())
+
+def get_processes():
+    p_dict.clear()
+    p_keys.clear()
+
+    for process in psutil.process_iter():
+        p_dict[process.name()] = process
+        p_keys.append(process.name())
 
 
 def main(page: ft.Page):
-    global p_keys
-
     def kill_process(e):
         if e.control in list_view.controls:
             p_name = e.control.title.value
 
             if p_name in p_keys:
                 try:
-                    processes[p_name].kill()
-                    del processes[p_name]
+                    p_dict[p_name].kill()
+                    del p_dict[p_name]
                     p_keys.remove(p_name)
                     list_view.controls.remove(e.control)
                 except psutil.NoSuchProcess:
-                    del processes[p_name]
+                    del p_dict[p_name]
                     p_keys.remove(p_name)
                     list_view.controls.remove(e.control)
                 except psutil.AccessDenied:
@@ -77,12 +83,12 @@ def main(page: ft.Page):
 
                 if p_name in p_keys:
                     try:
-                        processes[p_name].kill()
-                        del processes[p_name]
+                        p_dict[p_name].kill()
+                        del p_dict[p_name]
                         p_keys.remove(p_name)
                         list_view.controls.remove(entry)
                     except psutil.NoSuchProcess:
-                        del processes[p_name]
+                        del p_dict[p_name]
                         p_keys.remove(p_name)
                         list_view.controls.remove(entry)
                     except psutil.AccessDenied:
@@ -99,11 +105,11 @@ def main(page: ft.Page):
             text_field.value = None
             list_view.controls = None
 
-            processes.clear()
+            p_dict.clear()
             for process in psutil.process_iter():
-                processes[process.name()] = process
+                p_dict[process.name()] = process
 
-            p_keys = list(processes.keys())
+            p_keys = list(p_dict.keys())
 
         # CTRL + Q - Exit app
         elif e.key == "Q" and e.control:

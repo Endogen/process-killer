@@ -6,120 +6,131 @@ from flet_core import KeyboardEvent
 # TODO: Window resizes on startup
 # TODO: Display shortcuts in background
 
-p_dict = dict()
-p_keys = list()
 
-p_text = None
-p_list = None
+class Killer:
+    p_dict = dict()
+    p_keys = list()
 
+    p_text = None
+    p_list = None
 
-def get_processes():
-    p_dict.clear()
-    p_keys.clear()
+    page = None
 
-    for process in psutil.process_iter():
-        p_dict[process.name()] = process
-        p_keys.append(process.name())
+    list_processes = None
 
+    def __init__(self, page: ft.Page):
+        self.page = page
+        self.get_processes()
+        self.get_list_processes()
 
-def main(page: ft.Page):
-    def kill_process(e):
-        if e.control in list_view.controls:
+        self.p_text = ft.TextField(label="Process name:", on_change=self.textbox_changed, autofocus=True)
+        self.p_list = ft.ListView(expand=1, spacing=10, padding=20)
+
+        self.page.window_width = 600
+        self.page.window_height = 490
+        self.page.title = "Process-Killer"
+        self.page.on_keyboard_event = self.on_keyboard
+        self.page.add(self.p_text, self.p_list)
+
+    def get_list_processes(self):
+        self.list_processes = {
+            name: ft.ListTile(
+                title=ft.Text(name),
+                leading=ft.Icon(ft.icons.DELETE),
+                on_click=self.kill_process
+            )
+            for name in self.p_keys
+        }
+
+    def kill_process(self, e):
+        if e.control in self.p_list.controls:
             p_name = e.control.title.value
 
-            if p_name in p_keys:
+            if p_name in self.p_keys:
                 try:
-                    p_dict[p_name].kill()
-                    del p_dict[p_name]
-                    p_keys.remove(p_name)
-                    list_view.controls.remove(e.control)
+                    self.p_dict[p_name].kill()
+                    del self.p_dict[p_name]
+                    self.p_keys.remove(p_name)
+                    self.p_list.controls.remove(e.control)
                 except psutil.NoSuchProcess:
-                    del p_dict[p_name]
-                    p_keys.remove(p_name)
-                    list_view.controls.remove(e.control)
+                    del self.p_dict[p_name]
+                    self.p_keys.remove(p_name)
+                    self.p_list.controls.remove(e.control)
                 except psutil.AccessDenied:
                     e.control.leading = ft.Icon(ft.icons.ERROR)
 
-            text_field.focus()
-            page.update()
+            self.p_text.focus()
+            self.page.update()
 
-    list_processes = {
-        name: ft.ListTile(
-            title=ft.Text(name),
-            leading=ft.Icon(ft.icons.DELETE),
-            on_click=kill_process
-        )
-        for name in p_keys
-    }
-
-    def textbox_changed(string):
+    def textbox_changed(self, string):
         str_lower = string.control.value.lower()
-        list_view.controls = [
-            list_processes.get(n) for n in p_keys if str_lower in n.lower()
+
+        self.p_list.controls = [
+            self.list_processes.get(n) for n in self.p_keys if str_lower in n.lower()
         ] if str_lower else []
-        page.update()
 
-    text_field = ft.TextField(label="Process name:", on_change=textbox_changed, autofocus=True)
-    list_view = ft.ListView(expand=1, spacing=10, padding=20)
+        self.page.update()
 
-    def on_keyboard(e: KeyboardEvent):
-        global p_keys
-
+    def on_keyboard(self, e: KeyboardEvent):
         # ESC - Clear input field
         if e.key == "Escape":
-            text_field.value = None
-            list_view.controls = None
-            page.update()
+            self.p_text.value = None
+            self.p_list.controls = None
+            self.page.update()
 
         # CTRL + K - Multi kill
         elif e.key == "K" and e.control:
             tmp_list = list()
 
-            for entry in list_view.controls:
+            for entry in self.p_list.controls:
                 tmp_list.append(entry)
 
             for entry in tmp_list:
                 p_name = entry.title.value
 
-                if p_name in p_keys:
+                if p_name in self.p_keys:
                     try:
-                        p_dict[p_name].kill()
-                        del p_dict[p_name]
-                        p_keys.remove(p_name)
-                        list_view.controls.remove(entry)
+                        self.p_dict[p_name].kill()
+                        del self.p_dict[p_name]
+                        self.p_keys.remove(p_name)
+                        self.p_list.controls.remove(entry)
                     except psutil.NoSuchProcess:
-                        del p_dict[p_name]
-                        p_keys.remove(p_name)
-                        list_view.controls.remove(entry)
+                        del self.p_dict[p_name]
+                        self.p_keys.remove(p_name)
+                        self.p_list.controls.remove(entry)
                     except psutil.AccessDenied:
                         entry.leading = ft.Icon(ft.icons.ERROR)
 
-            if not list_view.controls:
-                text_field.value = None
+            if not self.p_list.controls:
+                self.p_text.value = None
 
-            text_field.focus()
-            page.update()
+            self.p_text.focus()
+            self.page.update()
 
         # CTRL + R - Refresh process list
         elif e.key == "R" and e.control:
-            text_field.value = None
-            list_view.controls = None
+            self.p_text.value = None
+            self.p_list.controls = None
 
-            p_dict.clear()
+            self.p_dict.clear()
             for process in psutil.process_iter():
-                p_dict[process.name()] = process
+                self.p_dict[process.name()] = process
 
-            p_keys = list(p_dict.keys())
+            self.p_keys = list(self.p_dict.keys())
 
         # CTRL + Q - Exit app
         elif e.key == "Q" and e.control:
-            page.window_destroy()
+            self.page.window_destroy()
 
-    page.window_width = 600
-    page.window_height = 490
-    page.title = "Process-Killer"
-    page.on_keyboard_event = on_keyboard
-    page.add(text_field, list_view)
+    def get_processes(self):
+        self.p_dict.clear()
+        self.p_keys.clear()
+
+        for process in psutil.process_iter():
+            self.p_dict[process.name()] = process
+            self.p_keys.append(process.name())
+
+        self.get_list_processes()
 
 
-ft.app(target=main)
+ft.app(target=Killer)

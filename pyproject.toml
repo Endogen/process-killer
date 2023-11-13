@@ -8,7 +8,7 @@ packages = [{include = "process_killer"}]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"
-flet = "^0.11.0"
+flet = "^0.12.0"
 psutil = "^5.9.6"
 pyinstaller = "^6.1.0"
 pillow = "^10.1.0"

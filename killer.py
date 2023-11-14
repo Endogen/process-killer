@@ -23,6 +23,8 @@ def get_processes():
 
 
 def main(page: ft.Page):
+    global p_keys
+
     def kill_process(e):
         if e.control in list_view.controls:
             p_name = e.control.title.value

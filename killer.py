@@ -21,7 +21,6 @@ class Killer:
     def __init__(self, page: ft.Page):
         self.page = page
         self.get_processes()
-        self.get_list_processes()
 
         self.p_text = ft.TextField(label="Process name:", on_change=self.textbox_changed, autofocus=True)
         self.p_list = ft.ListView(expand=1, spacing=10, padding=20)
@@ -31,6 +30,16 @@ class Killer:
         self.page.title = "Process-Killer"
         self.page.on_keyboard_event = self.on_keyboard
         self.page.add(self.p_text, self.p_list)
+
+    def get_processes(self):
+        self.p_dict.clear()
+        self.p_keys.clear()
+
+        for process in psutil.process_iter():
+            self.p_dict[process.name()] = process
+            self.p_keys.append(process.name())
+
+        self.get_list_processes()
 
     def get_list_processes(self):
         self.list_processes = {
@@ -121,16 +130,6 @@ class Killer:
         # CTRL + Q - Exit app
         elif e.key == "Q" and e.control:
             self.page.window_destroy()
-
-    def get_processes(self):
-        self.p_dict.clear()
-        self.p_keys.clear()
-
-        for process in psutil.process_iter():
-            self.p_dict[process.name()] = process
-            self.p_keys.append(process.name())
-
-        self.get_list_processes()
 
 
 ft.app(target=Killer)
